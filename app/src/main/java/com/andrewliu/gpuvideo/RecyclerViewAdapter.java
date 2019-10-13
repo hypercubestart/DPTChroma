@@ -80,10 +80,16 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 @Override
                 public void onClick(View v) {
                     int position = getAdapterPosition();
-                    ColorBlindTypes type = ColorBlindTypes.valueOf(colorBlindTypes.get(position).name);
-                    listener.onItemClick(type);
-                    current = position;
-                    notifyDataSetChanged();
+                    String name = colorBlindTypes.get(position).name;
+
+                    if (name.equals("Azure")) {
+                        listener.onItemClick(ColorBlindTypes.valueOf(name));
+                    } else {
+                        ColorBlindTypes type = ColorBlindTypes.valueOf(name);
+                        listener.onItemClick(type);
+                        current = position;
+                        notifyDataSetChanged();
+                    }
                 }
             });
             name.setVisibility(!isCollapsed ? View.VISIBLE : View.GONE);

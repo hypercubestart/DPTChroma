@@ -1,7 +1,11 @@
 package com.andrewliu.gpuvideo;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
+import android.media.ImageReader;
 import android.opengl.GLSurfaceView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -22,6 +26,13 @@ import com.daasuu.gpuv.camerarecorder.GPUCameraRecorderBuilder;
 import com.daasuu.gpuv.camerarecorder.LensFacing;
 import com.daasuu.gpuv.egl.filter.GlFilter;
 import com.daasuu.gpuv.egl.filter.GlInvertFilter;
+
+import org.tensorflow.lite.Interpreter;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 
 public class MainActivity extends AppCompatActivity implements RecyclerViewListener{
     private GLSurfaceView sampleGLView;
@@ -137,11 +148,17 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewListe
 
     @Override
     public void onItemClick(ColorBlindTypes type) {
-        currentType = type;
-        setFilter();
+        if (type == ColorBlindTypes.Azure) {
+            Intent i = new Intent(getApplicationContext(), ClassifyColorActivity.class);
+            startActivity(i);
+        } else {
+            currentType = type;
+            setFilter();
+        }
     }
 
     public void setFilter() {
         gpuCameraRecorder.setFilter(ColorBlind.getFilter(currentType, intensity));
     }
+
 }

@@ -17,9 +17,10 @@ public class ColorBlind {
 
     public static ArrayList<ColorBlind> getAll() {
         ArrayList<ColorBlind> list = new ArrayList<>();
-        list.add(new ColorBlind("Deuteranope", "https://www.myvirtualeventingcoach.com/custom/Hot_Air_balloon.jpg"));
-        list.add(new ColorBlind("Protanope", "https://www.myvirtualeventingcoach.com/custom/Hot_Air_balloon.jpg"));
-        list.add(new ColorBlind("Tritanope", "https://www.myvirtualeventingcoach.com/custom/Hot_Air_balloon.jpg"));
+        list.add(new ColorBlind("Deuteranope", "https://raw.githubusercontent.com/johnsonkuang/PythonDaltonAPI/master/images/Deuteranope.jpg"));
+        list.add(new ColorBlind("Protanope", "https://raw.githubusercontent.com/johnsonkuang/PythonDaltonAPI/master/images/Protan.png"));
+        list.add(new ColorBlind("Tritanope", "https://raw.githubusercontent.com/johnsonkuang/PythonDaltonAPI/master/images/Tritan.jpg"));
+        list.add(new ColorBlind("Azure", "https://mspoweruser.com/wp-content/uploads/2017/09/azure-1.png"));
         return list;
     }
 

@@ -16,6 +16,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    aaptOptions {
+        noCompress "tflite"
+    }
 }
 
 dependencies {
@@ -24,7 +28,7 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
     implementation 'com.github.MasayukiSuda:GPUVideo-android:v0.1.1'
     implementation 'com.google.android:flexbox:0.3.0'
-
+    implementation 'org.tensorflow:tensorflow-lite:+'
     // if apply video filter on ExoPlayer video
     implementation 'com.google.android.exoplayer:exoplayer-core:2.9.3'
     testImplementation 'junit:junit:4.12'

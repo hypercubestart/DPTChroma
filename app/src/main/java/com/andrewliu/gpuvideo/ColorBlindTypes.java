@@ -3,7 +3,8 @@ package com.andrewliu.gpuvideo;
 public enum ColorBlindTypes {
     Deuteranope("Deuteranope"),
     Protanope("Protanope"),
-    Tritanope("Tritanope");
+    Tritanope("Tritanope"),
+    Azure("Azure");
 
     private String type;
 
