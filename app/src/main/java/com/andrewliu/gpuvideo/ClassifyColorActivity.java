@@ -27,6 +27,7 @@ import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -34,6 +35,8 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.tensorflow.lite.Interpreter;
@@ -54,11 +57,13 @@ import java.util.Arrays;
 import java.util.List;
 public class ClassifyColorActivity extends AppCompatActivity {
     private static final String TAG = "AndroidCameraApi";
-    private Button takePictureButton;
+    private ImageButton takePictureButton;
     private TextureView textureView;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int IMAGE_MEAN = 128;
     private static final float IMAGE_STD = 128.0f;
+    private ImageClassifier classifier;
+    private TextView textView;
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -86,15 +91,19 @@ public class ClassifyColorActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_classify_color);
 
+
         try {
-            tflite = new Interpreter(loadModelFile(this));
+            classifier = new ImageClassifierFloatMobileNet(this);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+
+        textView = findViewById(R.id.textView);
         textureView = (TextureView) findViewById(R.id.texture);
         assert textureView != null;
         textureView.setSurfaceTextureListener(textureListener);
-        takePictureButton = (Button) findViewById(R.id.btn_takepicture);
+        takePictureButton = (ImageButton) findViewById(R.id.btn_takepicture);
         assert takePictureButton != null;
         takePictureButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -149,7 +158,7 @@ public class ClassifyColorActivity extends AppCompatActivity {
         @Override
         public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
             super.onCaptureCompleted(session, request, result);
-            Toast.makeText(ClassifyColorActivity.this, "Saved:" + file, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(ClassifyColorActivity.this, "Saved:" + file, Toast.LENGTH_SHORT).show();
             createCameraPreview();
         }
     };
@@ -206,30 +215,22 @@ public class ClassifyColorActivity extends AppCompatActivity {
                 public void onImageAvailable(ImageReader reader) {
                     Image image = null;
                     try {
+
+
+                        SpannableStringBuilder textToShow = new SpannableStringBuilder();
+                        Bitmap bitmap = textureView.getBitmap(classifier.getImageSizeX(), classifier.getImageSizeY());
+                        classifier.classifyFrame(bitmap, textToShow);
+                        showToast(textToShow);
+
                         image = reader.acquireLatestImage();
                         ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-
                         byte[] bytes = new byte[buffer.capacity()];
                         buffer.get(bytes);
+                        //save(bytes);
 
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-
-                        double scale = 0.3;
-                        Bitmap resized = Bitmap.createScaledBitmap(bitmap,(int)(bitmap.getWidth()*scale), (int)(bitmap.getHeight()*scale), true);
-
-                        bytes = convertBitmapToByteArray(resized);
-
-                        for (int i = 0; i < bytes.length; i++) {
-                            bytes[i] = (byte)(bytes[i] - 128.0)/128.0;
-                        }
-
-                        byte[][] labelProbArray = new byte[1][6];
-                        tflite.run(bitmap, labelProbArray);
-
-                        save(bytes);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
+                    } catch (Exception e) {
+                      //  e.printStackTrace();
+                    //} catch (IOException e) {
                         e.printStackTrace();
                     } finally {
                         if (image != null) {
@@ -238,29 +239,14 @@ public class ClassifyColorActivity extends AppCompatActivity {
                     }
                 }
 
-                private ByteBuffer convertBitmapToByteBuffer(Bitmap bitmap) {
-                    ByteBuffer byteBuffer;
-
-                    int inputSize = 240;
-
-                    byteBuffer = ByteBuffer.allocateDirect(4 * 1 * inputSize * inputSize * 3);
-
-
-                    byteBuffer.order(ByteOrder.nativeOrder());
-                    int[] intValues = new int[inputSize * inputSize];
-                    bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
-                    int pixel = 0;
-                    for (int i = 0; i < inputSize; ++i) {
-                        for (int j = 0; j < inputSize; ++j) {
-                            final int val = intValues[pixel++];
-
-                            byteBuffer.putFloat((((val >> 16) & 0xFF)-IMAGE_MEAN)/IMAGE_STD);
-                            byteBuffer.putFloat((((val >> 8) & 0xFF)-IMAGE_MEAN)/IMAGE_STD);
-                            byteBuffer.putFloat((((val) & 0xFF)-IMAGE_MEAN)/IMAGE_STD);
-
+                private void showToast(final SpannableStringBuilder builder) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            textView.setText(builder, TextView.BufferType.SPANNABLE);
                         }
-                    }
-                    return byteBuffer;
+                    });
+
                 }
 
                 public byte[] convertBitmapToByteArray(Bitmap bitmap) {
